@@ -6,8 +6,11 @@ const scoreRoutes = require("./routes/scoreRoutes");
 
 function createApp() {
   const app = express();
+  const corsOptions = buildCorsOptions();
 
-  app.use(cors(buildCorsOptions()));
+  app.use(cors(corsOptions));
+  app.options("*", cors(corsOptions));
+
   app.use(express.json());
 
   app.use("/api", authRoutes);

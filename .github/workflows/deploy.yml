@@ -49,12 +49,6 @@ jobs:
             docker stop sliding-puzzle-express || true
             docker rm sliding-puzzle-express || true 
 
-            docker run --rm \
-            --network nginx-proxy_gyubuntu_net \
-            --env-file ./.env \
-            ${{ secrets.DOCKER_USERNAME }}/sliding-puzzle-express:latest \
-            sh -c "npx prisma migrate deploy"
-
             docker run -d \
             -p 8004:8000 \
             --name sliding-puzzle-express \
