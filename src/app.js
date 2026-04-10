@@ -1,15 +1,14 @@
 const express = require("express");
 const cors = require("cors");
-const { buildCorsOptions } = require("./config/corsOptions");
+// const { buildCorsOptions } = require("./config/corsOptions");
 const authRoutes = require("./routes/authRoutes");
 const scoreRoutes = require("./routes/scoreRoutes");
 
 function createApp() {
   const app = express();
-  const corsOptions = buildCorsOptions();
+  // const corsOptions = buildCorsOptions();
 
-  app.use(cors(corsOptions));
-  app.options("*", cors(corsOptions));
+  app.use(cors());
 
   app.use(express.json());
 
