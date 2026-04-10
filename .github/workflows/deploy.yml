@@ -61,7 +61,7 @@ jobs:
             --network nginx-proxy_gyubuntu_net \
             --env-file ./.env \
             ${{ secrets.DOCKER_USERNAME }}/sliding-puzzle-express:latest \
-            sh -c "npm run start:prod" 
+            sh -c "npm run start" 
             docker image prune -f
 
       - name: 성공 메세지 출력
