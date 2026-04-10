@@ -9,6 +9,9 @@ const pool = new Pool({
   password: process.env.PGPASSWORD,
   ssl:
     process.env.PGSSLMODE === "require" ? { rejectUnauthorized: false } : false,
+  connectionTimeoutMillis: 5000,
+  idleTimeoutMillis: 30000,
+  max: 10,
 });
 
 async function ensureSchema() {
