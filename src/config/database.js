@@ -36,6 +36,27 @@ async function ensureSchema() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `);
+
+  await pool.query(`
+    WITH ranked_scores AS (
+      SELECT
+        score_id,
+        ROW_NUMBER() OVER (
+          PARTITION BY user_id, difficulty
+          ORDER BY score DESC, time_seconds ASC, moves ASC, hints ASC, created_at ASC, score_id ASC
+        ) AS row_number
+      FROM scores
+    )
+    DELETE FROM scores s
+    USING ranked_scores r
+    WHERE s.score_id = r.score_id
+      AND r.row_number > 1
+  `);
+
+  await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS scores_user_difficulty_unique_idx
+    ON scores (user_id, difficulty)
+  `);
 }
 
 module.exports = {

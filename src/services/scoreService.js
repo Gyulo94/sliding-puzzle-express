@@ -37,33 +37,64 @@ async function saveScore({ userId, difficulty, timeSeconds, moves, hints }) {
     return { userExists: false };
   }
 
-  const score = calculateScore({
+  const submittedScore = calculateScore({
     difficulty,
     timeSeconds,
     moves,
     hints,
   });
 
-  const insertResult = await pool.query(
+  const normalizedTimeSeconds = Math.floor(timeSeconds);
+  const normalizedMoves = Math.floor(moves);
+  const normalizedHints = Math.floor(hints);
+
+  const persistedResult = await pool.query(
     `
-      INSERT INTO scores (user_id, difficulty, time_seconds, moves, hints, score)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING score_id
+      WITH upserted AS (
+        INSERT INTO scores (user_id, difficulty, time_seconds, moves, hints, score)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        ON CONFLICT (user_id, difficulty) DO UPDATE
+        SET
+          time_seconds = EXCLUDED.time_seconds,
+          moves = EXCLUDED.moves,
+          hints = EXCLUDED.hints,
+          score = EXCLUDED.score,
+          created_at = NOW()
+        WHERE
+          EXCLUDED.score > scores.score
+          OR (EXCLUDED.score = scores.score AND EXCLUDED.time_seconds < scores.time_seconds)
+          OR (EXCLUDED.score = scores.score AND EXCLUDED.time_seconds = scores.time_seconds AND EXCLUDED.moves < scores.moves)
+          OR (EXCLUDED.score = scores.score AND EXCLUDED.time_seconds = scores.time_seconds AND EXCLUDED.moves = scores.moves AND EXCLUDED.hints < scores.hints)
+        RETURNING score_id, score, TRUE AS ranking_updated
+      )
+      SELECT score_id, score, ranking_updated
+      FROM upserted
+      UNION ALL
+      SELECT s.score_id, s.score, FALSE AS ranking_updated
+      FROM scores s
+      WHERE s.user_id = $1
+        AND s.difficulty = $2
+        AND NOT EXISTS (SELECT 1 FROM upserted)
+      LIMIT 1
       `,
     [
       userId,
       difficulty,
-      Math.floor(timeSeconds),
-      Math.floor(moves),
-      Math.floor(hints),
-      score,
+      normalizedTimeSeconds,
+      normalizedMoves,
+      normalizedHints,
+      submittedScore,
     ],
   );
 
+  const persistedScore = persistedResult.rows[0];
+
   return {
     userExists: true,
-    scoreId: insertResult.rows[0].score_id,
-    score,
+    scoreId: persistedScore?.score_id ?? null,
+    score: submittedScore,
+    bestScore: persistedScore?.score ?? submittedScore,
+    rankingUpdated: Boolean(persistedScore?.ranking_updated),
   };
 }
 

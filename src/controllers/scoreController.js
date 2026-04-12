@@ -35,9 +35,13 @@ async function createScore(req, res) {
     }
 
     return res.status(201).json({
-      message: "점수가 저장되었습니다",
+      message: result.rankingUpdated
+        ? "최고 기록이 랭킹에 반영되었습니다"
+        : "기존 최고 기록이 유지되었습니다",
       score: result.score,
+      bestScore: result.bestScore,
       scoreId: result.scoreId,
+      rankingUpdated: result.rankingUpdated,
     });
   } catch (error) {
     console.error("Score save failed:", error);
