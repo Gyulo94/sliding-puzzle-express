@@ -1,5 +1,9 @@
 const authService = require("../services/authService");
 
+// ====================== 1. 회원가입 API ======================
+/**
+ * 회원가입 요청을 검증하고 사용자 생성 결과를 응답하는 함수
+ */
 async function signup(req, res) {
   const id = (req.body?.id || "").trim();
   const name = (req.body?.name || "").trim();
@@ -27,6 +31,10 @@ async function signup(req, res) {
   }
 }
 
+// ====================== 2. 로그인 API ======================
+/**
+ * 로그인 요청을 검증하고 인증 토큰을 발급해 응답하는 함수
+ */
 async function login(req, res) {
   const id = (req.body?.id || "").trim();
   const password = (req.body?.password || "").trim();
@@ -60,6 +68,10 @@ async function login(req, res) {
   }
 }
 
+// ====================== 3. 내 정보 조회 API ======================
+/**
+ * Bearer 토큰을 검증해 현재 사용자 정보를 반환하는 함수
+ */
 async function me(req, res) {
   const authHeader = req.headers.authorization || "";
   const [scheme, token] = authHeader.split(" ");

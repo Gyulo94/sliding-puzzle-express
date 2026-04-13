@@ -1,5 +1,9 @@
 const scoreService = require("../services/scoreService");
 
+// ====================== 1. 점수 저장 API ======================
+/**
+ * 점수 입력값을 검증하고 최고 기록 반영 결과를 응답하는 함수
+ */
 async function createScore(req, res) {
   const userId = (req.body?.userId || "").trim();
   const difficulty = Number(req.body?.difficulty);
@@ -51,6 +55,10 @@ async function createScore(req, res) {
   }
 }
 
+// ====================== 2. 랭킹 조회 API ======================
+/**
+ * 난이도/페이지 조건으로 랭킹 목록을 조회해 응답하는 함수
+ */
 async function getScores(req, res) {
   const difficulty = Number(req.query?.difficulty || 4);
   const rawLimit = Number(req.query?.limit || 10);

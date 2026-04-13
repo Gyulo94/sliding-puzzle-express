@@ -1,5 +1,9 @@
 const { pool } = require("../config/database");
 
+// ====================== 1. 점수 계산 유틸 ======================
+/**
+ * 난이도(3/4/5)별 기준 점수를 반환하는 함수
+ */
 function getDifficultyBaseScore(difficulty) {
   const baseByDifficulty = {
     3: 10000,
@@ -10,6 +14,9 @@ function getDifficultyBaseScore(difficulty) {
   return baseByDifficulty[difficulty] || 0;
 }
 
+/**
+ * 시간/이동/힌트 정보를 기반으로 최종 점수를 계산하는 함수
+ */
 function calculateScore({ difficulty, timeSeconds, moves, hints }) {
   const BONUS_COEFFICIENT = 1200;
 
@@ -29,6 +36,10 @@ function calculateScore({ difficulty, timeSeconds, moves, hints }) {
   return Math.max(0, Math.round(baseScore + bonus - penalty));
 }
 
+// ====================== 2. 점수 저장 ======================
+/**
+ * 사용자 점수를 저장하고 랭킹 반영 여부를 반환하는 함수
+ */
 async function saveScore({ userId, difficulty, timeSeconds, moves, hints }) {
   const userResult = await pool.query("SELECT 1 FROM users WHERE id = $1", [
     userId,
@@ -98,6 +109,10 @@ async function saveScore({ userId, difficulty, timeSeconds, moves, hints }) {
   };
 }
 
+// ====================== 3. 랭킹 계산/조회 ======================
+/**
+ * 특정 scoreId의 현재 랭킹 순위를 계산하는 함수
+ */
 async function getRankByScoreId({ difficulty, scoreId }) {
   const result = await pool.query(
     `
@@ -126,6 +141,9 @@ async function getRankByScoreId({ difficulty, scoreId }) {
   return Number(result.rows[0].rank);
 }
 
+/**
+ * 난이도별 랭킹 목록과 페이지 정보를 조회하는 함수
+ */
 async function getRanking({ difficulty, limit, page = 1, scoreId = null }) {
   const safeLimit = Math.max(1, Number(limit) || 10);
   const safePage = Math.max(1, Number(page) || 1);

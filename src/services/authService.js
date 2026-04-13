@@ -2,8 +2,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { pool } = require("../config/database");
 
+// ====================== 1. 인증 토큰 상수 ======================
+/**
+ * 액세스 토큰 만료 기간
+ */
 const ACCESS_TOKEN_EXPIRES_IN = "7d";
 
+// ====================== 2. 토큰 생성/검증 ======================
+/**
+ * 사용자 정보를 기반으로 액세스 토큰을 생성하는 함수
+ */
 function createAccessToken(user) {
   const jwtSecret = process.env.JWT_SECRET || "dev-only-secret-change-me";
 
@@ -18,11 +26,18 @@ function createAccessToken(user) {
   );
 }
 
+/**
+ * 액세스 토큰의 유효성을 검증하고 페이로드를 반환하는 함수
+ */
 function verifyAccessToken(accessToken) {
   const jwtSecret = process.env.JWT_SECRET || "dev-only-secret-change-me";
   return jwt.verify(accessToken, jwtSecret);
 }
 
+// ====================== 3. 회원가입 서비스 ======================
+/**
+ * 회원가입 시 중복 아이디를 검사하고 새 사용자를 생성하는 함수
+ */
 async function signup({ id, name, password }) {
   const existsResult = await pool.query("SELECT 1 FROM users WHERE id = $1", [
     id,
@@ -41,6 +56,10 @@ async function signup({ id, name, password }) {
   return { conflict: false };
 }
 
+// ====================== 4. 로그인 서비스 ======================
+/**
+ * 로그인 정보를 검증하고 인증 토큰을 발급하는 함수
+ */
 async function login({ id, password }) {
   const result = await pool.query(
     "SELECT id, name, password FROM users WHERE id = $1",
@@ -57,7 +76,7 @@ async function login({ id, password }) {
   if (typeof user.password === "string" && user.password.startsWith("$2")) {
     matched = await bcrypt.compare(password, user.password);
   } else {
-    // Backward compatibility for existing plain-text records.
+    // 기존 평문 비밀번호 레코드와의 하위 호환 처리.
     matched = user.password === password;
     if (matched) {
       const upgradedHash = await bcrypt.hash(password, 12);
