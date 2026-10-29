@@ -33,6 +33,14 @@ jobs:
       - name: 도커 허브에 이미지 푸시
         run: docker push ${{ secrets.DOCKER_USERNAME }}/sliding-puzzle-express
 
+      - name: Tailscale 연결
+        uses: tailscale/github-action@v4.2.0
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+          ping: ${{ secrets.REMOTE_HOST }}
+
       - name: 원격서버에 배포
         uses: appleboy/ssh-action@master
         with:
@@ -50,6 +58,7 @@ jobs:
             docker rm sliding-puzzle-express || true 
 
             docker run -d \
+            --restart unless-stopped \
             --name sliding-puzzle-express \
             --network nginx_gyubuntu_net \
             --env-file ./.env \
