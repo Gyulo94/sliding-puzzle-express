@@ -51,7 +51,11 @@ jobs:
           script: |
             cd ${{ secrets.REMOTE_PROJECT_PATH }}
             docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-            echo "${{secrets.ENV_FILE}}" > ./.env
+            # 따옴표 붙인 heredoc: 시크릿 안의 $, `, \ 등이 셸에서 해석되지 않고 그대로 저장됨
+            cat > ./.env <<'ENVEOF'
+            ${{ secrets.ENV_FILE }}
+            ENVEOF
+            chmod 600 ./.env
             docker pull ${{ secrets.DOCKER_USERNAME }}/sliding-puzzle-express:latest
 
             docker stop sliding-puzzle-express || true
