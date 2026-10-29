@@ -50,9 +50,8 @@ jobs:
             docker rm sliding-puzzle-express || true 
 
             docker run -d \
-            -p 8004:8000 \
             --name sliding-puzzle-express \
-            --network nginx-proxy_gyubuntu_net \
+            --network nginx_gyubuntu_net \
             --env-file ./.env \
             ${{ secrets.DOCKER_USERNAME }}/sliding-puzzle-express:latest \
             sh -c "npm run start" 
